@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS vehiculos (
     placa VARCHAR(20) NOT NULL UNIQUE,
     marca VARCHAR(100) NOT NULL,
     modelo VARCHAR(100) NOT NULL,
-    anio INTEGER NOT NULL CHECK (anio = 0 OR anio >= 1886),
+    año INTEGER NOT NULL CHECK (año = 0 OR año >= 1886),
     propietario_id INTEGER NOT NULL,
     CONSTRAINT fk_vehiculo_propietario
         FOREIGN KEY (propietario_id) REFERENCES propietarios (id_propietario)

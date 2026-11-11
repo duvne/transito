@@ -49,9 +49,9 @@ public class VehiculoServicio {
         validarTexto(vehiculo.getPlaca(), "La placa");
         validarTexto(vehiculo.getMarca(), "La marca");
         validarTexto(vehiculo.getModelo(), "El modelo");
-        int anioActual = java.time.Year.now().getValue();
-        if ((vehiculo.getAnio() != 0 && vehiculo.getAnio() < 1886)
-                || vehiculo.getAnio() > anioActual + 1) {
+        int añoActual = java.time.Year.now().getValue();
+        if ((vehiculo.getAño() != 0 && vehiculo.getAño() < 1886)
+                || vehiculo.getAño() > añoActual + 1) {
             throw new IllegalArgumentException("El año del vehículo no es válido");
         }
         if (vehiculo.getIdPropietario() <= 0) {

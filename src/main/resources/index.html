@@ -257,12 +257,12 @@
       vehiculos: {
         title: "Vehículos", singular: "vehículo", endpoint: "vehiculos",
         description: "Consulta los vehículos y sus propietarios registrados.",
-        columns: [["idVehiculo", "ID"], ["placa", "Placa"], ["marca", "Marca"], ["modelo", "Modelo"], ["anio", "Año"], ["propietario", "Propietario"]],
+        columns: [["idVehiculo", "ID"], ["placa", "Placa"], ["marca", "Marca"], ["modelo", "Modelo"], ["año", "Año"], ["propietario", "Propietario"]],
         key: "idVehiculo", fields: [
           { name: "placa", label: "Placa", required: true },
           { name: "marca", label: "Marca", required: true },
           { name: "modelo", label: "Modelo", required: true },
-          { name: "anio", label: "Año", type: "number", min: "1886", max: String(new Date().getFullYear() + 1), step: "1", required: true },
+          { name: "año", label: "Año", type: "number", min: "1886", max: String(new Date().getFullYear() + 1), step: "1", required: true },
           { name: "idPropietario", label: "Propietario", type: "propietario", required: true }
         ]
       },
@@ -424,7 +424,7 @@
         return state.data.vehiculos.find((vehiculo) =>
           vehiculo.idVehiculo === Number(record.idVehiculo))?.placa || "—";
       }
-      if (entity === "vehiculos" && field === "anio" && Number(record.anio) === 0) {
+      if (entity === "vehiculos" && field === "año" && Number(record.año) === 0) {
         return "Sin dato";
       }
       return safeText(record[field]);
@@ -499,7 +499,7 @@
             option.value = field.type === "propietario" ? choice.idPropietario : choice.idVehiculo;
             option.textContent = field.type === "propietario"
               ? `${choice.cedula} — ${nombrePropietario(choice)}`
-              : `${choice.placa} — ${choice.marca} ${choice.modelo} (${choice.anio || "año sin dato"})`;
+              : `${choice.placa} — ${choice.marca} ${choice.modelo} (${choice.año || "año sin dato"})`;
             control.append(option);
           }
         } else {
@@ -513,7 +513,7 @@
 
         if (record) {
           let value = record[field.name];
-          if (field.name === "anio" && Number(value) === 0) value = "";
+          if (field.name === "año" && Number(value) === 0) value = "";
           control.value = value ?? "";
         }
         wrapper.append(label, control);

@@ -11,19 +11,19 @@ import java.util.Optional;
 
 public class VehiculoDAOImpl implements IVehiculoDAO {
     private static final String SELECT_VEHICULO =
-            "SELECT v.id_vehiculo, v.placa, v.marca, v.modelo, v.anio, v.propietario_id "
+            "SELECT v.id_vehiculo, v.placa, v.marca, v.modelo, v.año, v.propietario_id "
             + "FROM vehiculos v ";
 
     @Override
     public void crear(VehiculoDTO vehiculo) throws SQLException {
-        String sql = "INSERT INTO vehiculos (placa, marca, modelo, anio, propietario_id) "
+        String sql = "INSERT INTO vehiculos (placa, marca, modelo, año, propietario_id) "
                 + "VALUES (?, ?, ?, ?, ?) RETURNING id_vehiculo";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, vehiculo.getPlaca());
             statement.setString(2, vehiculo.getMarca());
             statement.setString(3, vehiculo.getModelo());
-            statement.setInt(4, vehiculo.getAnio());
+            statement.setInt(4, vehiculo.getAño());
             statement.setInt(5, vehiculo.getIdPropietario());
             try (ResultSet result = statement.executeQuery()) {
                 if (result.next()) {
@@ -73,14 +73,14 @@ public class VehiculoDAOImpl implements IVehiculoDAO {
 
     @Override
     public boolean actualizar(VehiculoDTO vehiculo) throws SQLException {
-        String sql = "UPDATE vehiculos SET placa = ?, marca = ?, modelo = ?, anio = ?, "
+        String sql = "UPDATE vehiculos SET placa = ?, marca = ?, modelo = ?, año = ?, "
                 + "propietario_id = ? WHERE id_vehiculo = ?";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, vehiculo.getPlaca());
             statement.setString(2, vehiculo.getMarca());
             statement.setString(3, vehiculo.getModelo());
-            statement.setInt(4, vehiculo.getAnio());
+            statement.setInt(4, vehiculo.getAño());
             statement.setInt(5, vehiculo.getIdPropietario());
             statement.setInt(6, vehiculo.getIdVehiculo());
             return statement.executeUpdate() == 1;
@@ -103,7 +103,7 @@ public class VehiculoDAOImpl implements IVehiculoDAO {
         vehiculo.setPlaca(result.getString("placa"));
         vehiculo.setMarca(result.getString("marca"));
         vehiculo.setModelo(result.getString("modelo"));
-        vehiculo.setAnio(result.getInt("anio"));
+        vehiculo.setAño(result.getInt("año"));
         vehiculo.setIdPropietario(result.getInt("propietario_id"));
         return vehiculo;
     }

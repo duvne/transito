@@ -5,7 +5,7 @@ public class VehiculoDTO {
     private String placa;
     private String marca;
     private String modelo;
-    private int anio;
+    private int año;
     private int idPropietario;
 
     public VehiculoDTO() {}
@@ -22,8 +22,8 @@ public class VehiculoDTO {
     public String getModelo() { return modelo; }
     public void setModelo(String modelo) { this.modelo = modelo; }
 
-    public int getAnio() { return anio; }
-    public void setAnio(int anio) { this.anio = anio; }
+    public int getAño() { return año; }
+    public void setAño(int año) { this.año = año; }
 
     public int getIdPropietario() { return idPropietario; }
     public void setIdPropietario(int idPropietario) { this.idPropietario = idPropietario; }

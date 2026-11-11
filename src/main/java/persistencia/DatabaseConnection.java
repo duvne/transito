@@ -156,10 +156,19 @@ public final class DatabaseConnection {
                 statement.execute("ALTER TABLE vehiculos ADD COLUMN marca "
                         + "VARCHAR(100) NOT NULL DEFAULT 'Sin especificar'");
             }
-            if (!tieneColumna(metadata, "vehiculos", "anio")) {
-                statement.execute("ALTER TABLE vehiculos ADD COLUMN anio "
+            boolean tieneAño = tieneColumna(metadata, "vehiculos", "año");
+            boolean tieneColumnaAnterior = tieneColumna(metadata, "vehiculos", "anio");
+            if (tieneAño && tieneColumnaAnterior) {
+                throw new SQLException(
+                        "La tabla vehiculos contiene las columnas año y anio; resuelve la migración manualmente.");
+            }
+            if (tieneColumnaAnterior) {
+                statement.execute("ALTER TABLE vehiculos RENAME COLUMN anio TO año");
+            } else if (!tieneAño) {
+                statement.execute("ALTER TABLE vehiculos ADD COLUMN año "
                         + "INTEGER NOT NULL DEFAULT 0");
             }
+            renombrarRestriccionAño(connection);
             if (tieneColumna(metadata, "vehiculos", "id_vehiculo")) {
                 return;
             }
@@ -188,8 +197,40 @@ public final class DatabaseConnection {
                     + "PRIMARY KEY (id_vehiculo)");
             statement.execute("ALTER TABLE multas ADD CONSTRAINT fk_multa_vehiculo "
                     + "FOREIGN KEY (placa_vehiculo) REFERENCES vehiculos (placa)");
-            statement.execute("ALTER TABLE vehiculos ADD CONSTRAINT ck_vehiculos_anio "
-                    + "CHECK (anio = 0 OR anio >= 1886) NOT VALID");
+            statement.execute("ALTER TABLE vehiculos ADD CONSTRAINT ck_vehiculos_año "
+                    + "CHECK (año = 0 OR año >= 1886) NOT VALID");
+        }
+    }
+
+    private static void renombrarRestriccionAño(Connection connection) throws SQLException {
+        String sql = "SELECT "
+                + "EXISTS (SELECT 1 FROM pg_constraint c "
+                + "JOIN pg_class t ON t.oid = c.conrelid "
+                + "JOIN pg_namespace n ON n.oid = t.relnamespace "
+                + "WHERE n.nspname = 'public' AND t.relname = 'vehiculos' "
+                + "AND c.conname = 'ck_vehiculos_anio'), "
+                + "EXISTS (SELECT 1 FROM pg_constraint c "
+                + "JOIN pg_class t ON t.oid = c.conrelid "
+                + "JOIN pg_namespace n ON n.oid = t.relnamespace "
+                + "WHERE n.nspname = 'public' AND t.relname = 'vehiculos' "
+                + "AND c.conname = 'ck_vehiculos_año')";
+        boolean restriccionAnterior;
+        boolean restriccionActual;
+        try (Statement statement = connection.createStatement();
+             ResultSet result = statement.executeQuery(sql)) {
+            result.next();
+            restriccionAnterior = result.getBoolean(1);
+            restriccionActual = result.getBoolean(2);
+        }
+        if (restriccionAnterior && restriccionActual) {
+            throw new SQLException(
+                    "La tabla vehiculos contiene las restricciones ck_vehiculos_anio y ck_vehiculos_año.");
+        }
+        if (restriccionAnterior) {
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("ALTER TABLE vehiculos "
+                        + "RENAME CONSTRAINT ck_vehiculos_anio TO ck_vehiculos_año");
+            }
         }
     }
 
