@@ -1,0 +1,17 @@
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\com\mycompany\mavenproject1\transito.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\entidad\MultaDTO.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\entidad\PropietarioDTO.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\entidad\VehiculoDTO.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\persistencia\DatabaseConnection.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\persistencia\IMultaDAO.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\persistencia\IPropietarioDAO.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\persistencia\IVehiculoDAO.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\persistencia\MultaDAOImpl.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\persistencia\PropietarioDAOImpl.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\persistencia\VehiculoDAOImpl.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\presentacion\MultaControl.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\presentacion\PropietarioControl.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\presentacion\VehiculoControl.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\servicio\MultaServicio.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\servicio\PropietarioServicio.java
+C:\Users\duvan\Downloads\prototipo transito\transito\src\main\java\servicio\VehiculoServicio.java

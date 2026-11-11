@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10233f">
+  <title>Vía Clara | Gestión de tránsito</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #10233f;
+      --navy-soft: #1c3557;
+      --blue: #2874c8;
+      --blue-pale: #eaf3ff;
+      --ink: #1b2b42;
+      --muted: #78869a;
+      --line: #e7ecf2;
+      --paper: #fff;
+      --canvas: #f5f7fa;
+      --red: #c94d55;
+      --green: #23876b;
+      --shadow: 0 12px 32px rgb(22 43 70 / 6%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: var(--canvas); color: var(--ink); }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .shell { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+    .sidebar {
+      position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column;
+      padding: 27px 17px 18px; color: #dce7f5; background: var(--navy);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 0 10px 31px; }
+    .brand-mark {
+      width: 39px; height: 39px; display: grid; place-items: center; border-radius: 12px;
+      background: #d9eaff; color: var(--navy); font-size: 19px; font-weight: 850;
+    }
+    .brand-name { color: white; font-size: 16px; font-weight: 750; letter-spacing: -.3px; }
+    .brand-caption { margin-top: 3px; color: #8fa4bf; font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; }
+    .nav-label { padding: 0 12px 10px; color: #8498b2; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+    .nav { display: grid; gap: 6px; }
+    .nav-button {
+      display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px;
+      border: 0; border-radius: 9px; color: #b7c6d9; background: transparent;
+      text-align: left; font-size: 13px; font-weight: 600; transition: .15s ease;
+    }
+    .nav-button:hover { color: #fff; background: #ffffff10; }
+    .nav-button.active { color: #fff; background: var(--navy-soft); box-shadow: inset 3px 0 #77b5ff; }
+    .nav-icon { width: 20px; text-align: center; font-size: 16px; }
+    .sidebar-bottom { margin-top: auto; padding: 15px 11px 0; border-top: 1px solid #ffffff17; }
+    .connection { display: flex; align-items: center; gap: 9px; color: #bdcadd; font-size: 12px; }
+    .connection-dot { width: 8px; height: 8px; border-radius: 50%; background: #47c293; box-shadow: 0 0 0 4px #47c29320; }
+    .connection.error .connection-dot { background: #f47575; box-shadow: 0 0 0 4px #f4757520; }
+    .sidebar-note { margin: 10px 0 0; color: #8194ad; font-size: 11px; line-height: 1.5; }
+
+    .main { min-width: 0; }
+    .topbar {
+      height: 68px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 38px; border-bottom: 1px solid var(--line); background: var(--paper);
+    }
+    .breadcrumb { color: var(--muted); font-size: 12px; }
+    .breadcrumb strong { color: var(--ink); font-weight: 650; }
+    .top-actions { display: flex; align-items: center; gap: 13px; }
+    .today { color: var(--muted); font-size: 12px; }
+    .avatar {
+      width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%;
+      color: #285d98; background: #e7f1ff; font-size: 12px; font-weight: 750;
+    }
+    .content { width: min(1280px, 100%); margin: 0 auto; padding: 31px 38px 44px; }
+    .page-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 24px; }
+    .eyebrow { margin-bottom: 7px; color: var(--blue); font-size: 10px; font-weight: 750; letter-spacing: 1.5px; text-transform: uppercase; }
+    h1 { margin: 0; color: var(--navy); font-size: clamp(24px, 3vw, 31px); letter-spacing: -1px; }
+    .page-description { margin: 7px 0 0; color: var(--muted); font-size: 13px; }
+    .button {
+      min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      padding: 0 14px; border: 1px solid transparent; border-radius: 8px;
+      font-size: 12px; font-weight: 700; transition: .15s ease;
+    }
+    .button-primary { color: #fff; background: var(--blue); box-shadow: 0 3px 8px #2874c82a; }
+    .button-primary:hover { background: #1f65b2; }
+    .button-secondary { color: #42546b; border-color: #dce3eb; background: #fff; }
+    .button-secondary:hover { border-color: #b9c9dc; background: #f9fbfd; }
+    .button-danger { color: var(--red); border-color: #f0d7d9; background: #fff; }
+    .button-danger:hover { background: #fff5f5; }
+    .button-small { min-height: 30px; padding: 0 9px; font-size: 11px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+    .stat-card {
+      min-height: 111px; display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; padding: 17px 18px; border: 1px solid var(--line);
+      border-radius: 11px; background: var(--paper); box-shadow: var(--shadow);
+    }
+    .stat-label { color: var(--muted); font-size: 11px; font-weight: 650; }
+    .stat-value { margin-top: 8px; color: var(--navy); font-size: 25px; font-weight: 760; letter-spacing: -.8px; }
+    .stat-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; color: #3477bd; background: var(--blue-pale); font-size: 17px; }
+    .stat-card:nth-child(2) .stat-icon { color: #8c62c1; background: #f2ecfb; }
+    .stat-card:nth-child(3) .stat-icon { color: #c18133; background: #fff4e3; }
+    .stat-card:nth-child(4) .stat-icon { color: #25866b; background: #e7f6f0; }
+
+    .panel { overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: var(--paper); box-shadow: var(--shadow); }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 19px 21px; border-bottom: 1px solid var(--line); }
+    .panel-title { margin: 0; color: var(--navy); font-size: 15px; font-weight: 730; }
+    .panel-subtitle { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+    .toolbar { display: flex; align-items: center; gap: 9px; }
+    .search {
+      width: 210px; height: 35px; padding: 0 11px; border: 1px solid #e1e7ee;
+      border-radius: 7px; outline: none; color: var(--ink); background: #fff; font-size: 12px;
+    }
+    .search:focus, .field input:focus, .field select:focus { border-color: #80b3ea; box-shadow: 0 0 0 3px #2874c81a; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { padding: 11px 17px; color: #8190a3; background: #fbfcfe; font-size: 10px; font-weight: 730; letter-spacing: .6px; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 13px 17px; border-top: 1px solid #eef1f5; color: #405168; font-size: 12px; }
+    tbody tr:hover { background: #fbfdff; }
+    .primary-cell { color: var(--navy); font-weight: 700; }
+    .badge { display: inline-flex; padding: 4px 8px; border-radius: 99px; color: #2e69a9; background: #edf5ff; font-size: 10px; font-weight: 700; }
+    .row-actions { display: flex; justify-content: flex-end; gap: 6px; }
+    .table-empty { padding: 42px 18px; color: var(--muted); text-align: center; }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; padding: 20px; background: #10233f75; }
+    .modal { width: min(460px, 100%); padding: 23px; border-radius: 13px; background: #fff; box-shadow: 0 22px 65px #0e1e3540; }
+    .modal-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 20px; }
+    .modal-title { margin: 0; color: var(--navy); font-size: 18px; }
+    .modal-description { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+    .close-button { border: 0; color: var(--muted); background: transparent; font-size: 22px; }
+    .form-grid { display: grid; gap: 14px; }
+    .field { display: grid; gap: 6px; }
+    .field label { color: #586980; font-size: 11px; font-weight: 700; }
+    .field input, .field select {
+      width: 100%; height: 39px; padding: 0 11px; border: 1px solid #dfe6ee;
+      border-radius: 7px; outline: none; color: var(--ink); background: #fff; font-size: 12px;
+    }
+    .field input:disabled { color: #748196; background: #f5f7fa; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+    .toast {
+      position: fixed; right: 24px; bottom: 24px; z-index: 10; max-width: min(420px, calc(100vw - 32px));
+      padding: 13px 17px; border-radius: 9px; color: #fff; background: var(--navy);
+      box-shadow: 0 10px 30px #10233f35; font-size: 12px; line-height: 1.5;
+    }
+    .toast.error { background: #a63d46; }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 980px) {
+      .shell { grid-template-columns: 205px minmax(0, 1fr); }
+      .content { padding: 26px 23px 36px; }
+      .topbar { padding: 0 23px; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 700px) {
+      .shell { display: block; }
+      .sidebar { position: static; width: 100%; height: auto; padding: 12px 15px; }
+      .brand { padding: 0 3px 12px; }
+      .nav-label, .sidebar-bottom { display: none; }
+      .nav { grid-template-columns: repeat(3, 1fr); }
+      .nav-button { justify-content: center; padding: 9px 5px; font-size: 11px; }
+      .nav-icon { width: auto; }
+      .topbar { height: 49px; padding: 0 17px; }
+      .content { padding: 23px 15px 30px; }
+      .page-heading { align-items: center; }
+      .stats { gap: 9px; }
+      .stat-card { min-height: 90px; padding: 13px; }
+      .stat-value { font-size: 21px; }
+      .stat-icon { width: 32px; height: 32px; }
+      .panel-header { align-items: flex-start; flex-direction: column; padding: 15px; }
+      .toolbar, .search { width: 100%; }
+      .today { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">V</div>
+        <div><div class="brand-name">Vía Clara</div><div class="brand-caption">Sistema de tránsito</div></div>
+      </div>
+      <div class="nav-label">Administración</div>
+      <nav class="nav" aria-label="Secciones">
+        <button class="nav-button active" data-view="resumen"><span class="nav-icon">⌂</span> Resumen</button>
+        <button class="nav-button" data-view="propietarios"><span class="nav-icon">♙</span> Propietarios</button>
+        <button class="nav-button" data-view="vehiculos"><span class="nav-icon">▱</span> Vehículos</button>
+        <button class="nav-button" data-view="multas"><span class="nav-icon">▤</span> Multas</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="connection" id="connection"><span class="connection-dot"></span><span id="connection-text">Conectando…</span></div>
+        <p class="sidebar-note">Panel local de gestión de registros de tránsito.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="breadcrumb">Panel de control&nbsp; / &nbsp;<strong id="breadcrumb">Resumen</strong></div>
+        <div class="top-actions"><span class="today" id="today"></span><div class="avatar">VC</div></div>
+      </header>
+      <section class="content">
+        <div class="page-heading">
+          <div>
+            <div class="eyebrow">Control operativo</div>
+            <h1 id="page-title">Resumen general</h1>
+            <p class="page-description" id="page-description">Vista general de los registros del sistema de tránsito.</p>
+          </div>
+          <button class="button button-primary" id="new-record"><span aria-hidden="true">＋</span> Nuevo registro</button>
+        </div>
+
+        <section class="stats" aria-label="Resumen de registros">
+          <article class="stat-card"><div><div class="stat-label">Propietarios registrados</div><div class="stat-value" id="stat-propietarios">—</div></div><div class="stat-icon">♙</div></article>
+          <article class="stat-card"><div><div class="stat-label">Vehículos registrados</div><div class="stat-value" id="stat-vehiculos">—</div></div><div class="stat-icon">▱</div></article>
+          <article class="stat-card"><div><div class="stat-label">Multas registradas</div><div class="stat-value" id="stat-multas">—</div></div><div class="stat-icon">▤</div></article>
+          <article class="stat-card"><div><div class="stat-label">Monto acumulado</div><div class="stat-value" id="stat-monto">—</div></div><div class="stat-icon">$</div></article>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div><h2 class="panel-title" id="table-title">Actividad reciente</h2><p class="panel-subtitle" id="table-subtitle">Consulta y administra los registros guardados.</p></div>
+            <div class="toolbar">
+              <input class="search" id="search" type="search" placeholder="Buscar registro…" aria-label="Buscar registro">
+              <button class="button button-secondary" id="refresh" title="Actualizar datos">↻ Actualizar</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table><thead id="table-head"></thead><tbody id="table-body"></tbody></table></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modal-backdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-heading">
+        <div><h2 class="modal-title" id="modal-title">Nuevo registro</h2><p class="modal-description" id="modal-description"></p></div>
+        <button class="close-button" id="close-modal" aria-label="Cerrar">×</button>
+      </div>
+      <form id="record-form"><div class="form-grid" id="form-fields"></div>
+        <div class="modal-footer"><button type="button" class="button button-secondary" id="cancel-modal">Cancelar</button><button type="submit" class="button button-primary" id="save-record">Guardar registro</button></div>
+      </form>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script>
+    const config = {
+      propietarios: {
+        title: "Propietarios", singular: "propietario", endpoint: "propietarios",
+        description: "Administra las personas propietarias de los vehículos.",
+        columns: [["cedula", "Cédula"], ["nombreCompleto", "Nombre"], ["telefono", "Teléfono"], ["email", "Correo"], ["fecha", "Fecha"]],
+        key: "idPropietario", fields: [
+          { name: "cedula", label: "Cédula", required: true },
+          { name: "nombres", label: "Nombres", required: true },
+          { name: "apellidos", label: "Apellidos", required: true },
+          { name: "telefono", label: "Teléfono" },
+          { name: "email", label: "Correo electrónico", type: "email" },
+          { name: "fecha", label: "Fecha", type: "date" }
+        ]
+      },
+      vehiculos: {
+        title: "Vehículos", singular: "vehículo", endpoint: "vehiculos",
+        description: "Consulta los vehículos y sus propietarios registrados.",
+        columns: [["idVehiculo", "ID"], ["placa", "Placa"], ["marca", "Marca"], ["modelo", "Modelo"], ["anio", "Año"], ["propietario", "Propietario"]],
+        key: "idVehiculo", fields: [
+          { name: "placa", label: "Placa", required: true },
+          { name: "marca", label: "Marca", required: true },
+          { name: "modelo", label: "Modelo", required: true },
+          { name: "anio", label: "Año", type: "number", min: "1886", max: String(new Date().getFullYear() + 1), step: "1", required: true },
+          { name: "idPropietario", label: "Propietario", type: "propietario", required: true }
+        ]
+      },
+      multas: {
+        title: "Multas", singular: "multa", endpoint: "multas",
+        description: "Registra y consulta las multas asociadas a vehículos.",
+        columns: [["idMulta", "ID"], ["codigoInfraccion", "Infracción"], ["descripcion", "Descripción"], ["valor", "Valor"], ["fecha", "Fecha"], ["vehiculo", "Vehículo"]],
+        key: "idMulta", fields: [
+          { name: "codigoInfraccion", label: "Código de infracción", required: true },
+          { name: "descripcion", label: "Descripción", required: true },
+          { name: "valor", label: "Valor", type: "number", min: "0", step: "0.01", required: true },
+          { name: "fecha", label: "Fecha", type: "date", required: true },
+          { name: "idVehiculo", label: "Vehículo", type: "vehiculo", required: true }
+        ]
+      }
+    };
+
+    const state = { view: "resumen", data: { propietarios: [], vehiculos: [], multas: [] }, editKey: null };
+    const $ = (selector) => document.querySelector(selector);
+    const safeText = (value) => value == null ? "" : String(value);
+    let toastTimer;
+
+    async function api(endpoint, options = {}) {
+      const response = await fetch(`/api/${endpoint}`, {
+        ...options,
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) }
+      });
+      if (response.status === 204) return null;
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || `Error HTTP ${response.status}`);
+      return result;
+    }
+
+    function showToast(message, isError = false) {
+      const toast = $("#toast");
+      toast.textContent = message;
+      toast.classList.toggle("error", isError);
+      toast.hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.hidden = true; }, 3600);
+    }
+
+    function setConnection(connected) {
+      $("#connection").classList.toggle("error", !connected);
+      $("#connection-text").textContent = connected ? "Sistema conectado" : "Sin conexión";
+    }
+
+    async function refreshData() {
+      try {
+        const [propietarios, vehiculos, multas] = await Promise.all([
+          api("propietarios"), api("vehiculos"), api("multas")
+        ]);
+        state.data = { propietarios, vehiculos, multas };
+        setConnection(true);
+        renderStats();
+        renderTable();
+      } catch (error) {
+        setConnection(false);
+        showToast(error.message, true);
+      }
+    }
+
+    function renderStats() {
+      $("#stat-propietarios").textContent = state.data.propietarios.length;
+      $("#stat-vehiculos").textContent = state.data.vehiculos.length;
+      $("#stat-multas").textContent = state.data.multas.length;
+      const monto = state.data.multas.reduce((total, multa) => total + Number(multa.valor || 0), 0);
+      $("#stat-monto").textContent = new Intl.NumberFormat("es-CO", {
+        style: "currency", currency: "COP", maximumFractionDigits: 0
+      }).format(monto);
+    }
+
+    function renderTable() {
+      const isSummary = state.view === "resumen";
+      const entity = isSummary ? "multas" : state.view;
+      const settings = config[entity];
+      $("#table-title").textContent = isSummary ? "Multas recientes" : `Listado de ${settings.title.toLowerCase()}`;
+      $("#table-subtitle").textContent = isSummary
+        ? "Últimas multas registradas en el sistema."
+        : `${state.data[entity].length} registro${state.data[entity].length === 1 ? "" : "s"} en total`;
+      $("#search").placeholder = `Buscar ${settings.singular}…`;
+      $("#new-record").hidden = isSummary;
+
+      const head = $("#table-head");
+      head.replaceChildren();
+      const headerRow = document.createElement("tr");
+      for (const [, label] of settings.columns) {
+        const th = document.createElement("th");
+        th.textContent = label;
+        headerRow.append(th);
+      }
+      const actionHeader = document.createElement("th");
+      actionHeader.textContent = "Acciones";
+      actionHeader.style.textAlign = "right";
+      headerRow.append(actionHeader);
+      head.append(headerRow);
+
+      const query = $("#search").value.trim().toLocaleLowerCase();
+      const records = [...state.data[entity]].reverse().filter((record) =>
+        Object.values(record).some((value) => {
+          if (value && typeof value === "object") return Object.values(value).some((nested) =>
+            String(nested ?? "").toLocaleLowerCase().includes(query));
+          return String(value ?? "").toLocaleLowerCase().includes(query);
+        }));
+      const shownRecords = isSummary ? records.slice(0, 6) : records;
+      const body = $("#table-body");
+      body.replaceChildren();
+      if (shownRecords.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = settings.columns.length + 1;
+        cell.className = "table-empty";
+        cell.textContent = query ? "No hay resultados para esa búsqueda." : "Aún no hay registros. Crea el primero para comenzar.";
+        row.append(cell);
+        body.append(row);
+        return;
+      }
+
+      for (const record of shownRecords) {
+        const row = document.createElement("tr");
+        for (let index = 0; index < settings.columns.length; index++) {
+          const [field] = settings.columns[index];
+          const cell = document.createElement("td");
+          const value = displayValue(entity, record, field);
+          cell.textContent = value;
+          if (index === 0) cell.className = "primary-cell";
+          if (field === "valor") cell.textContent = new Intl.NumberFormat("es-CO", {
+            style: "currency", currency: "COP", maximumFractionDigits: 2
+          }).format(Number(record.valor));
+          if (field === "idMulta" || field === "codigoInfraccion") {
+            const badge = document.createElement("span");
+            badge.className = "badge";
+            badge.textContent = value;
+            cell.replaceChildren(badge);
+          }
+          row.append(cell);
+        }
+        const actions = document.createElement("td");
+        const buttons = document.createElement("div");
+        buttons.className = "row-actions";
+        buttons.append(
+          actionButton("Editar", "button button-secondary button-small", () => openForm(entity, record)),
+          actionButton("Eliminar", "button button-danger button-small", () => removeRecord(entity, record))
+        );
+        actions.append(buttons);
+        row.append(actions);
+        body.append(row);
+      }
+    }
+
+    function displayValue(entity, record, field) {
+      if (entity === "propietarios" && field === "nombreCompleto") {
+        return [record.nombres, record.apellidos].filter(Boolean).join(" ");
+      }
+      if (entity === "vehiculos" && field === "propietario") {
+        return nombrePropietario(propietarioPorId(record.idPropietario));
+      }
+      if (entity === "multas" && field === "vehiculo") {
+        return state.data.vehiculos.find((vehiculo) =>
+          vehiculo.idVehiculo === Number(record.idVehiculo))?.placa || "—";
+      }
+      if (entity === "vehiculos" && field === "anio" && Number(record.anio) === 0) {
+        return "Sin dato";
+      }
+      return safeText(record[field]);
+    }
+
+    function propietarioPorId(id) {
+      return state.data.propietarios.find((propietario) => propietario.idPropietario === Number(id));
+    }
+
+    function nombrePropietario(propietario) {
+      if (!propietario) return "—";
+      return [propietario.nombres, propietario.apellidos].filter(Boolean).join(" ");
+    }
+
+    function actionButton(label, className, action) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = className;
+      button.textContent = label;
+      button.addEventListener("click", action);
+      return button;
+    }
+
+    function navigate(view) {
+      state.view = view;
+      const summary = view === "resumen";
+      const settings = summary ? null : config[view];
+      document.querySelectorAll(".nav-button").forEach((button) =>
+        button.classList.toggle("active", button.dataset.view === view));
+      $("#breadcrumb").textContent = summary ? "Resumen" : settings.title;
+      $("#page-title").textContent = summary ? "Resumen general" : settings.title;
+      $("#page-description").textContent = summary
+        ? "Vista general de los registros del sistema de tránsito."
+        : settings.description;
+      $("#search").value = "";
+      renderTable();
+    }
+
+    function openForm(entity, record = null) {
+      const settings = config[entity];
+      state.editKey = record ? record[settings.key] : null;
+      $("#modal-title").textContent = record ? `Editar ${settings.singular}` : `Nuevo ${settings.singular}`;
+      $("#modal-description").textContent = record
+        ? "Actualiza la información y guarda los cambios."
+        : "Completa los datos para agregar un nuevo registro.";
+      $("#save-record").textContent = record ? "Guardar cambios" : "Guardar registro";
+
+      const fields = $("#form-fields");
+      fields.replaceChildren();
+      for (const field of settings.fields) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "field";
+        const label = document.createElement("label");
+        const control = field.type === "propietario" || field.type === "vehiculo"
+          ? document.createElement("select") : document.createElement("input");
+        control.name = field.name;
+        control.required = field.required;
+        label.htmlFor = field.name;
+        label.textContent = field.label;
+        control.id = field.name;
+
+        if (control instanceof HTMLSelectElement) {
+          const choices = field.type === "propietario"
+            ? state.data.propietarios
+            : state.data.vehiculos;
+          const placeholder = document.createElement("option");
+          placeholder.value = "";
+          placeholder.textContent = field.type === "propietario" ? "Selecciona un propietario" : "Selecciona un vehículo";
+          control.append(placeholder);
+          for (const choice of choices) {
+            const option = document.createElement("option");
+            option.value = field.type === "propietario" ? choice.idPropietario : choice.idVehiculo;
+            option.textContent = field.type === "propietario"
+              ? `${choice.cedula} — ${nombrePropietario(choice)}`
+              : `${choice.placa} — ${choice.marca} ${choice.modelo} (${choice.anio || "año sin dato"})`;
+            control.append(option);
+          }
+        } else {
+          control.type = field.type || "text";
+          control.min = field.min || "";
+          control.max = field.max || "";
+          control.step = field.step || "";
+          control.autocomplete = "off";
+          if (record && field.name === settings.key) control.disabled = true;
+        }
+
+        if (record) {
+          let value = record[field.name];
+          if (field.name === "anio" && Number(value) === 0) value = "";
+          control.value = value ?? "";
+        }
+        wrapper.append(label, control);
+        fields.append(wrapper);
+      }
+      $("#modal-backdrop").hidden = false;
+      const firstEditable = fields.querySelector("input:not(:disabled), select");
+      if (firstEditable) firstEditable.focus();
+    }
+
+    function closeForm() {
+      $("#modal-backdrop").hidden = true;
+      $("#record-form").reset();
+      state.editKey = null;
+    }
+
+    async function saveRecord(event) {
+      event.preventDefault();
+      const entity = state.view;
+      const settings = config[entity];
+      if (!settings) return;
+      const form = new FormData(event.currentTarget);
+      let payload = Object.fromEntries(form.entries());
+      if (entity === "multas") payload.monto = Number(payload.monto);
+      const editing = state.editKey !== null;
+      const pathId = editing ? `/${encodeURIComponent(state.editKey)}` : "";
+      try {
+        await api(`${settings.endpoint}${pathId}`, {
+          method: editing ? "PUT" : "POST",
+          body: JSON.stringify(payload)
+        });
+        closeForm();
+        await refreshData();
+        showToast(editing ? "Cambios guardados correctamente." : "Registro creado correctamente.");
+      } catch (error) {
+        showToast(error.message, true);
+      }
+    }
+
+    async function removeRecord(entity, record) {
+      const settings = config[entity];
+      if (!confirm(`¿Eliminar ${settings.singular} "${record[settings.key]}"?`)) return;
+      try {
+        await api(`${settings.endpoint}/${encodeURIComponent(record[settings.key])}`, { method: "DELETE" });
+        await refreshData();
+        showToast(`${settings.singular[0].toUpperCase()}${settings.singular.slice(1)} eliminado.`);
+      } catch (error) {
+        showToast(error.message, true);
+      }
+    }
+
+    document.querySelectorAll(".nav-button").forEach((button) =>
+      button.addEventListener("click", () => navigate(button.dataset.view)));
+    $("#new-record").addEventListener("click", () => openForm(state.view));
+    $("#refresh").addEventListener("click", refreshData);
+    $("#search").addEventListener("input", renderTable);
+    $("#record-form").addEventListener("submit", saveRecord);
+    $("#close-modal").addEventListener("click", closeForm);
+    $("#cancel-modal").addEventListener("click", closeForm);
+    $("#modal-backdrop").addEventListener("click", (event) => {
+      if (event.target === $("#modal-backdrop")) closeForm();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !$("#modal-backdrop").hidden) closeForm();
+    });
+    $("#today").textContent = new Intl.DateTimeFormat("es-CO", {
+      weekday: "short", day: "numeric", month: "short", year: "numeric"
+    }).format(new Date());
+    refreshData();
+  </script>
+</body>
+</html>
